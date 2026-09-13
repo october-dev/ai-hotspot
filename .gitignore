@@ -1,0 +1,19 @@
+# Compiled binary
+/ai-hotspot
+/cmd/ai-hotspot/ai-hotspot
+*.exe
+
+# Local runtime state and secrets
+/data/
+config.json
+
+# Go build/test artifacts
+*.test
+*.out
+*.prof
+/dist/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

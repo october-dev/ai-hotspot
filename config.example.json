@@ -1,0 +1,32 @@
+{
+  "port": 8760,
+  "adminToken": "change-me-to-a-long-random-secret",
+  "defaultUpstream": "orcarouter",
+  "dataFile": "./data/hotspot.json",
+  "upstreams": [
+    {
+      "name": "orcarouter",
+      "baseURL": "https://api.orcarouter.ai/v1",
+      "apiKey": "YOUR_ORCAROUTER_KEY"
+    },
+    {
+      "name": "openrouter",
+      "baseURL": "https://openrouter.ai/api/v1",
+      "apiKey": "YOUR_OPENROUTER_KEY",
+      "extraHeaders": {
+        "HTTP-Referer": "http://localhost:8760",
+        "X-Title": "AI Hotspot"
+      }
+    },
+    {
+      "name": "featherless",
+      "baseURL": "https://api.featherless.ai/v1",
+      "apiKey": "YOUR_FEATHERLESS_KEY"
+    },
+    {
+      "name": "concurred",
+      "baseURL": "https://concurred.ai/api/v1",
+      "apiKey": "YOUR_CONCURRED_KEY"
+    }
+  ]
+}

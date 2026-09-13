@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Hotspot</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #131a22;
+    --panel-2: #18212b;
+    --border: #24303c;
+    --text: #e6edf3;
+    --muted: #8b98a5;
+    --accent: #4ea1ff;
+    --good: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+  }
+  a { color: var(--accent); }
+  header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  header h1 { font-size: 18px; margin: 0; letter-spacing: 0.3px; }
+  header h1 .dot { color: var(--accent); }
+  .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .status .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .status.live .pip { background: var(--good); box-shadow: 0 0 8px var(--good); }
+  .status.err .pip { background: var(--bad); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+  .card .value { font-size: 26px; font-weight: 650; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  section { margin-bottom: 30px; }
+  section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin: 0 0 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); background: var(--panel-2); }
+  tr:last-child td { border-bottom: none; }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  .muted { color: var(--muted); }
+  .num { font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 5px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); }
+  .bar.warn > span { background: var(--warn); }
+  .bar.over > span { background: var(--bad); }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-family: var(--mono); }
+  .pill.ok { color: var(--good); background: rgba(63,185,80,0.12); }
+  .pill.err { color: var(--bad); background: rgba(248,81,73,0.12); }
+  .pill.neutral { color: var(--muted); background: var(--panel-2); }
+  button {
+    background: var(--accent); color: #04121f; border: 0; border-radius: 8px;
+    padding: 9px 14px; font-weight: 600; cursor: pointer; font-size: 13px;
+  }
+  button:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
+  button.danger { background: transparent; color: var(--bad); border: 1px solid var(--border); font-weight: 500; padding: 5px 10px; }
+  button.danger:hover { background: rgba(248,81,73,0.1); }
+  input {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 9px 11px; font-size: 13px; font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .empty { padding: 24px 16px; color: var(--muted); text-align: center; font-size: 13px; }
+  .keycell { display: flex; gap: 8px; align-items: center; }
+  .copy { cursor: pointer; color: var(--muted); font-size: 12px; text-decoration: underline; background: none; border: none; padding: 0; }
+  .gate { max-width: 420px; margin: 80px auto; text-align: center; }
+  .gate .panel { padding: 26px; }
+  .gate p { color: var(--muted); font-size: 14px; }
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s;
+    pointer-events: none; z-index: 20;
+  }
+  #toast.show { opacity: 1; }
+  @media (max-width: 640px) {
+    main { padding: 16px; }
+    th:nth-child(3), td:nth-child(3) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate" hidden>
+  <div class="panel">
+    <h1>AI Hotspot</h1>
+    <p>Enter the admin token from your <span class="mono">config.json</span> to open the dashboard.</p>
+    <div class="row" style="justify-content:center;margin-top:14px;">
+      <input id="tokenInput" type="password" placeholder="admin token" style="min-width:240px;" />
+      <button id="tokenBtn">Unlock</button>
+    </div>
+    <p id="gateErr" class="pill err" style="margin-top:14px;display:none;">Invalid admin token</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <h1><span class="dot">&#9679;</span> AI Hotspot</h1>
+    <div class="row">
+      <span id="status" class="status"><span class="pip"></span><span id="statusText">connecting&hellip;</span></span>
+      <button id="logout" class="ghost">Lock</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="cards">
+      <div class="card"><div class="label">Clients</div><div class="value num" id="mClients">0</div></div>
+      <div class="card"><div class="label">Requests</div><div class="value num" id="mRequests">0</div></div>
+      <div class="card"><div class="label">Total tokens</div><div class="value num" id="mTokens">0</div></div>
+      <div class="card"><div class="label">Prompt / Completion</div><div class="value num" id="mSplit">0 / 0</div></div>
+    </div>
+
+    <section>
+      <h2>Create client</h2>
+      <div class="panel" style="padding:16px;">
+        <div class="row">
+          <input id="cName" placeholder="Client name (e.g. Alice's laptop)" style="flex:1;min-width:200px;" />
+          <input id="cBudget" type="number" min="0" placeholder="Budget tokens (0 = unlimited)" style="min-width:220px;" />
+          <button id="cCreate">Create key</button>
+        </div>
+        <div id="newKey" style="display:none;margin-top:14px;" class="row">
+          <span class="muted">New client key:</span>
+          <span id="newKeyVal" class="mono"></span>
+          <button class="copy" data-copy-target="newKeyVal">copy</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Clients</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Key</th><th>Requests</th><th>Tokens used / budget</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody">
+            <tr><td colspan="5" class="empty">No clients yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Recent requests</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr><th>Time</th><th>Client</th><th>Upstream</th><th>Model</th><th>Tokens</th><th>Status</th></tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr><td colspan="6" class="empty">No requests yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="muted" style="font-size:12px;">
+      Token counts are reported by the upstream provider; any cost figures elsewhere are approximations derived from token usage.
+    </p>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var TOKEN_KEY = "ai_hotspot_admin_token";
+  var POLL_MS = 2000;
+  var token = "";
+  var timer = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.classList.remove("show"); }, 1800);
+  }
+
+  function fmt(n) {
+    n = Number(n || 0);
+    return n.toLocaleString();
+  }
+
+  function maskKey(k) {
+    if (!k) return "";
+    if (k.length <= 12) return k;
+    return k.slice(0, 6) + "…" + k.slice(-4);
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast("Copied"); },
+        function () { toast("Copy failed"); });
+    } else {
+      toast("Copy not supported");
+    }
+  }
+
+  function api(method, path, body) {
+    var opts = { method: method, headers: { "Authorization": "Bearer " + token } };
+    if (body !== undefined) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(path, opts);
+  }
+
+  function showGate(err) {
+    $("app").hidden = true;
+    $("gate").hidden = false;
+    $("gateErr").style.display = err ? "inline-block" : "none";
+    $("tokenInput").focus();
+  }
+
+  function showApp() {
+    $("gate").hidden = true;
+    $("app").hidden = false;
+  }
+
+  function setStatus(state, text) {
+    var el = $("status");
+    el.className = "status" + (state ? " " + state : "");
+    $("statusText").textContent = text;
+  }
+
+  function unlock(t) {
+    token = t;
+    api("GET", "/admin/usage").then(function (r) {
+      if (r.status === 401) { showGate(true); return; }
+      if (!r.ok) { showGate(true); return; }
+      try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
+      showApp();
+      startPolling();
+    }).catch(function () { showGate(true); });
+  }
+
+  function startPolling() {
+    if (timer) clearInterval(timer);
+    poll();
+    timer = setInterval(poll, POLL_MS);
+  }
+
+  function poll() {
+    api("GET", "/admin/usage").then(function (r) {
+      if (r.status === 401) { stopPolling(); showGate(true); return; }
+      if (!r.ok) { setStatus("err", "error " + r.status); return; }
+      return r.json().then(render);
+    }).catch(function () { setStatus("err", "disconnected"); });
+  }
+
+  function stopPolling() { if (timer) { clearInterval(timer); timer = null; } }
+
+  function render(data) {
+    setStatus("live", "live · " + new Date().toLocaleTimeString());
+    var t = data.totals || {};
+    $("mClients").textContent = fmt(t.clientCount);
+    $("mRequests").textContent = fmt(t.totalRequests);
+    $("mTokens").textContent = fmt(t.totalTokens);
+    $("mSplit").textContent = fmt(t.totalPromptTokens) + " / " + fmt(t.totalCompletionTokens);
+
+    renderClients(data.clients || []);
+    renderRecent(data.recent || []);
+  }
+
+  function renderClients(clients) {
+    var body = $("clientsBody");
+    if (!clients.length) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">No clients yet. Create one above.</td></tr>';
+      return;
+    }
+    body.innerHTML = clients.map(function (c) {
+      var budget = Number(c.budgetTokens || 0);
+      var used = Number(c.totalTokens || 0);
+      var budgetCell, bar = "";
+      if (budget > 0) {
+        var pct = Math.min(100, Math.round((used / budget) * 100));
+        var cls = pct >= 100 ? "over" : (pct >= 80 ? "warn" : "");
+        budgetCell = fmt(used) + " / " + fmt(budget) + " <span class='muted'>(" + pct + "%)</span>";
+        bar = "<div class='bar " + cls + "'><span style='width:" + pct + "%'></span></div>";
+      } else {
+        budgetCell = fmt(used) + " <span class='muted'>/ unlimited</span>";
+      }
+      return "<tr>" +
+        "<td>" + esc(c.name) + "</td>" +
+        "<td class='keycell'><span class='mono' title='" + esc(c.key) + "'>" + esc(maskKey(c.key)) +
+          "</span><button class='copy' data-copy='" + esc(c.key) + "'>copy</button></td>" +
+        "<td class='num'>" + fmt(c.requests) + "</td>" +
+        "<td class='num'>" + budgetCell + bar + "</td>" +
+        "<td style='text-align:right'><button class='danger' data-del='" + esc(c.key) + "'>delete</button></td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  function renderRecent(recent) {
+    var body = $("recentBody");
+    if (!recent.length) {
+      body.innerHTML = '<tr><td colspan="6" class="empty">No requests yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = recent.slice(0, 50).map(function (r) {
+      var ok = r.status >= 200 && r.status < 300;
+      var pillCls = ok ? "ok" : (r.status ? "err" : "neutral");
+      var time = r.time ? new Date(r.time).toLocaleTimeString() : "";
+      var stream = r.streaming ? " <span class='muted'>&middot; stream</span>" : "";
+      return "<tr>" +
+        "<td class='muted num'>" + esc(time) + "</td>" +
+        "<td>" + esc(r.clientName || "?") + "</td>" +
+        "<td class='mono'>" + esc(r.upstream || "-") + "</td>" +
+        "<td class='mono'>" + esc(r.model || "-") + stream + "</td>" +
+        "<td class='num'>" + fmt(r.totalTokens) + "</td>" +
+        "<td><span class='pill " + pillCls + "'>" + (r.status || "-") + "</span></td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  // --- events ---
+  $("tokenBtn").addEventListener("click", function () { unlock($("tokenInput").value.trim()); });
+  $("tokenInput").addEventListener("keydown", function (e) { if (e.key === "Enter") unlock($("tokenInput").value.trim()); });
+
+  $("logout").addEventListener("click", function () {
+    stopPolling();
+    token = "";
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    showGate(false);
+  });
+
+  $("cCreate").addEventListener("click", function () {
+    var name = $("cName").value.trim();
+    if (!name) { toast("Enter a client name"); return; }
+    var budget = parseInt($("cBudget").value, 10);
+    if (isNaN(budget) || budget < 0) budget = 0;
+    api("POST", "/admin/clients", { name: name, budgetTokens: budget }).then(function (r) {
+      if (!r.ok) { toast("Create failed (" + r.status + ")"); return; }
+      return r.json();
+    }).then(function (c) {
+      if (!c) return;
+      $("cName").value = "";
+      $("cBudget").value = "";
+      $("newKeyVal").textContent = c.key;
+      $("newKey").style.display = "flex";
+      toast("Client created");
+      poll();
+    }).catch(function () { toast("Create failed"); });
+  });
+
+  document.addEventListener("click", function (e) {
+    var del = e.target.getAttribute && e.target.getAttribute("data-del");
+    if (del) {
+      if (!confirm("Delete this client key? Any device using it will lose access.")) return;
+      api("DELETE", "/admin/clients/" + encodeURIComponent(del)).then(function (r) {
+        toast(r.ok ? "Deleted" : "Delete failed");
+        poll();
+      });
+      return;
+    }
+    var copyVal = e.target.getAttribute && e.target.getAttribute("data-copy");
+    if (copyVal) { copy(copyVal); return; }
+    var copyTarget = e.target.getAttribute && e.target.getAttribute("data-copy-target");
+    if (copyTarget) { copy($(copyTarget).textContent); return; }
+  });
+
+  // --- boot ---
+  var saved = "";
+  try { saved = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
+  if (saved) { unlock(saved); } else { showGate(false); }
+})();
+</script>
+</body>
+</html>
