@@ -1,6 +1,8 @@
 # AI Hotspot
 
-**A LAN, OpenAI-compatible model-router HTTP server.**
+**Share your AI model access with everyone on your WiFi, without sharing your keys.**
+
+AI Hotspot is a self-hosted, OpenAI-compatible model router for your local network. One binary, standard library only, with a live usage dashboard.
 
 You (the operator) hold the real provider API keys. Everyone on the same
 WiFi/LAN uses models through your keys with **no accounts** — you just hand them
@@ -204,4 +206,19 @@ web/dashboard.html         embedded (go:embed) self-contained dashboard
 config.example.json        sample config
 ```
 
-No third-party dependencies — standard library only.
+No third-party dependencies, standard library only.
+
+---
+
+## Security
+
+- **Keep it on your LAN.** AI Hotspot binds to `0.0.0.0` so devices on your network can reach it. Do not port-forward it or put it on a public server; anyone with a client key spends your provider credit.
+- **Use a long, random `adminToken`.** It controls key creation and the dashboard. `openssl rand -hex 32` works.
+- **`config.json` and `data/` hold secrets.** The first has your provider keys, the second your client keys. Both are in `.gitignore`; keep them out of backups you share.
+- **Revoke keys you no longer need** from the dashboard or with `DELETE /admin/clients/{key}`.
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE)

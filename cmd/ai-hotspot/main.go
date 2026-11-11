@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/harshsaver/ai-hotspot/internal/config"
-	"github.com/harshsaver/ai-hotspot/internal/server"
-	"github.com/harshsaver/ai-hotspot/internal/store"
+	"github.com/october-dev/ai-hotspot/internal/config"
+	"github.com/october-dev/ai-hotspot/internal/server"
+	"github.com/october-dev/ai-hotspot/internal/store"
 )
 
 func main() {

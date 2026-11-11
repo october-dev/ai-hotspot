@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/harshsaver/ai-hotspot/internal/config"
+	"github.com/october-dev/ai-hotspot/internal/config"
 )
 
 // Route is a resolved forwarding target: an upstream and the model to send to it.

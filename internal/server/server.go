@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/harshsaver/ai-hotspot/internal/config"
-	"github.com/harshsaver/ai-hotspot/internal/proxy"
-	"github.com/harshsaver/ai-hotspot/internal/store"
-	"github.com/harshsaver/ai-hotspot/web"
+	"github.com/october-dev/ai-hotspot/internal/config"
+	"github.com/october-dev/ai-hotspot/internal/proxy"
+	"github.com/october-dev/ai-hotspot/internal/store"
+	"github.com/october-dev/ai-hotspot/web"
 )
 
 // maxBodyBytes limits the size of an incoming chat-completions body.
