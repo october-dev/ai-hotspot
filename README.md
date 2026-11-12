@@ -1,4 +1,25 @@
-# AI Hotspot
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo-light.svg" alt="ai-hotspot" width="560">
+  </picture>
+  <br>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/tagline-dark.svg">
+    <img src="assets/tagline-light.svg" alt="Share AI with your WiFi, not your keys." width="520">
+  </picture>
+</div>
+
+---
+
+<p>
+  <a href="#quickstart"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/button-start-dark.svg"><img src="assets/button-start-light.svg" alt="Quick start" height="40" align="top"></picture></a>
+  <a href="#connecting-a-lan-client"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/button-connect-dark.svg"><img src="assets/button-connect-light.svg" alt="Connect a client" height="40" align="top"></picture></a>
+  <a href="#the-dashboard"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/button-dashboard-dark.svg"><img src="assets/button-dashboard-light.svg" alt="Dashboard" height="40" align="top"></picture></a>
+  <a href="#quickstart"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/callout-dark.svg"><img src="assets/callout-light.svg" alt="One binary. No accounts. No dependencies." height="40" align="top"></picture></a>
+</p>
+
+---
 
 **Share your AI model access with everyone on your WiFi, without sharing your keys.**
 
